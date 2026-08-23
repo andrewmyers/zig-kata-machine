@@ -1,0 +1,32 @@
+.{
+    .kata = .{
+        .{
+            .name = "sort_insertion.zig",
+            .template = "sort_template.zig",
+        },
+        .{
+            .name = "sort_heap.zig",
+            .template = "sort_template.zig",
+        },
+        .{
+            .name = "sort_quick.zig",
+            .template = "sort_template.zig",
+        },
+        .{
+            .name = "sort_pdq.zig",
+            .template = "sort_template.zig",
+        },
+        .{
+            .name = "sort_bubble.zig",
+            .template = "sort_template.zig",
+        },
+        .{
+            .name = "sort_merge.zig",
+            .template = "sort_template.zig",
+        },
+        .{
+            .name = "sort_tim.zig",
+            .template = "sort_template.zig",
+        },
+    },
+}
