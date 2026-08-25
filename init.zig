@@ -1,6 +1,19 @@
 const std = @import("std");
 const Io = std.Io;
 
+const USAGE =
+    \\ Usage: init
+    \\
+    \\ Options:
+    \\    -f|--force: Overwrite exercises that already exist
+    \\
+    \\
+;
+
+fn display_usage() void {
+    std.debug.print(USAGE, .{});
+}
+
 const MetaEntry = struct {
     name: []const u8,
     template: []const u8,
@@ -15,6 +28,24 @@ const template_dir = "./templates/";
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
     const allocator = init.arena.allocator();
+
+    var argsIterator = init.minimal.args.iterate();
+    var force: bool = false;
+
+    var i: usize = 0;
+    while (argsIterator.next()) |arg| : (i += 1) {
+        if (i == 0) {
+            // Program name
+            continue;
+        }
+
+        if (std.mem.eql(u8, "-f", arg) or std.mem.eql(u8, "--force", arg)) {
+            force = true;
+        } else if (std.mem.eql(u8, "-h", arg) or std.mem.eql(u8, "--help", arg)) {
+            display_usage();
+            return;
+        }
+    }
 
     const meta_contents = try file_get_contents(io, allocator, meta_filename);
     const meta = try parse_meta_file(allocator, meta_contents);
@@ -35,16 +66,21 @@ pub fn main(init: std.process.Init) !void {
 
         const template = try file_get_contents(io, allocator, template_path);
 
-        // TODO: WRITE FILE
-        const file = try out_dir.createFile(io, kata.name, .{});
-        errdefer file.close(io);
+        const file: ?Io.File = out_dir.createFile(io, kata.name, .{ .exclusive = !force }) catch |e| switch (e) {
+            error.PathAlreadyExists => null,
+            else => return e,
+        };
 
-        var file_writer = file.writer(io, &.{});
-        const writer = &file_writer.interface;
+        if (file) |f| {
+            errdefer f.close(io);
 
-        _ = try writer.write(template);
+            var file_writer = f.writer(io, &.{});
+            const writer = &file_writer.interface;
 
-        file.close(io);
+            _ = try writer.write(template);
+
+            f.close(io);
+        }
     }
 }
 
