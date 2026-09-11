@@ -1,5 +1,6 @@
 .{
     .kata = .{
+        // Sorting
         .{
             .name = "sort_insertion.zig",
             .template = "sort_template.zig",
@@ -27,6 +28,16 @@
         .{
             .name = "sort_tim.zig",
             .template = "sort_template.zig",
+        },
+
+        // Arrays
+        .{
+            .name = "array_list.zig",
+            .template = "array_template.zig",
+        },
+        .{
+            .name = "array_set.zig",
+            .template = "array_template.zig",
         },
     },
 }
