@@ -3,19 +3,19 @@ const Allocator = std.mem.Allocator;
 
 const ArrayError = error{ IndexOutOfBounds, OutOfMemory };
 
-const empty = Array{ .items = &.{}, .capacity = 0 };
+const empty = ArrayList{ .items = &.{}, .capacity = 0 };
 
-const Array = struct {
+const ArrayList = struct {
     items: []u32, // Note: len is part of items
     capacity: usize,
 
-    pub fn deinit(self: Array, gpa: Allocator) void {
+    pub fn deinit(self: ArrayList, gpa: Allocator) void {
         //... Your solution here
         _ = self;
         _ = gpa;
     }
 
-    pub fn insert(self: *Array, gpa: Allocator, i: usize, item: u32) ArrayError!void {
+    pub fn insert(self: *ArrayList, gpa: Allocator, i: usize, item: u32) ArrayError!void {
         //... Your solution here
         _ = self;
         _ = gpa;
@@ -23,7 +23,7 @@ const Array = struct {
         _ = item;
     }
 
-    pub fn delete(self: *Array, i: usize) ArrayError!u32 {
+    pub fn delete(self: *ArrayList, i: usize) ArrayError!u32 {
         //... Your solution here
         _ = self;
         _ = i;
@@ -31,7 +31,7 @@ const Array = struct {
         return 0;
     }
 
-    pub fn get(self: *Array, i: usize) ArrayError!u32 {
+    pub fn get(self: *ArrayList, i: usize) ArrayError!u32 {
         //... Your solution here
         _ = self;
         _ = i;
@@ -39,7 +39,7 @@ const Array = struct {
         return 0;
     }
 
-    pub fn search(self: *Array, value: u32) ?usize {
+    pub fn search(self: *ArrayList, value: u32) ?usize {
         //... Your solution here
         _ = self;
         _ = value;

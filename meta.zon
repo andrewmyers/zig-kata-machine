@@ -33,11 +33,11 @@
         // Arrays
         .{
             .name = "array_list.zig",
-            .template = "array_template.zig",
+            .template = "array_list_template.zig",
         },
         .{
             .name = "array_set.zig",
-            .template = "array_template.zig",
+            .template = "array_set_template.zig",
         },
     },
 }
