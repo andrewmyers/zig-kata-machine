@@ -1,19 +1,13 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 
-const ArrayError = error{ IndexOutOfBounds, OutOfMemory };
+const ArrayError = error{IndexOutOfBounds};
 
 const empty = ArrayList{ .items = &.{}, .capacity = 0 };
 
 const ArrayList = struct {
     items: []u32, // Note: len is part of items
     capacity: usize,
-
-    pub fn deinit(self: ArrayList, gpa: Allocator) void {
-        //... Your solution here
-        _ = self;
-        _ = gpa;
-    }
 
     pub fn insert(self: *ArrayList, gpa: Allocator, i: usize, item: u32) ArrayError!void {
         //... Your solution here
@@ -45,6 +39,32 @@ const ArrayList = struct {
         _ = value;
 
         return null;
+    }
+
+    pub fn deinit(self: ArrayList, gpa: Allocator) void {
+        gpa.free(self.items.ptr[0..self.capacity]);
+    }
+
+    fn ensureCapacity(self: *ArrayList, gpa: Allocator, required_capacity: usize) void {
+        if (self.capacity >= required_capacity) return;
+
+        const init_capacity: comptime_int = @max(1, std.atomic.cache_line / @sizeOf(u32));
+        const new_capacity = required_capacity +| (required_capacity / 2 + init_capacity);
+
+        const old_memory = self.items.ptr[0..self.capacity];
+        if (gpa.remap(old_memory, new_capacity)) |new_memory| {
+            self.items.ptr = new_memory.ptr;
+            self.capacity = new_memory.len;
+        } else {
+            const new_memory = gpa.alignedAlloc(u32, null, new_capacity) catch {
+                std.debug.panic("Out of memory", .{});
+            };
+
+            @memcpy(new_memory[0..self.items.len], self.items);
+            gpa.free(old_memory);
+            self.items.ptr = new_memory.ptr;
+            self.capacity = new_memory.len;
+        }
     }
 };
 

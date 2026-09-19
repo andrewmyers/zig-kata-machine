@@ -7,12 +7,6 @@ const ArraySet = struct {
     items: []u32, // Note: len is part of items
     capacity: usize,
 
-    pub fn deinit(self: ArraySet, gpa: Allocator) void {
-        //... Your solution here
-        _ = self;
-        _ = gpa;
-    }
-
     pub fn insert(self: *ArraySet, gpa: Allocator, item: u32) usize {
         //... Your solution here
         _ = self;
@@ -38,11 +32,30 @@ const ArraySet = struct {
         return null;
     }
 
+    pub fn deinit(self: ArraySet, gpa: Allocator) void {
+        gpa.free(self.items.ptr[0..self.capacity]);
+    }
+
     fn ensureCapacity(self: *ArraySet, gpa: Allocator, required_capacity: usize) void {
-        //... Your solution here
-        _ = self;
-        _ = gpa;
-        _ = required_capacity;
+        if (self.capacity >= required_capacity) return;
+
+        const init_capacity: comptime_int = @max(1, std.atomic.cache_line / @sizeOf(u32));
+        const new_capacity = required_capacity +| (required_capacity / 2 + init_capacity);
+
+        const old_memory = self.items.ptr[0..self.capacity];
+        if (gpa.remap(old_memory, new_capacity)) |new_memory| {
+            self.items.ptr = new_memory.ptr;
+            self.capacity = new_memory.len;
+        } else {
+            const new_memory = gpa.alignedAlloc(u32, null, new_capacity) catch {
+                std.debug.panic("Out of memory", .{});
+            };
+
+            @memcpy(new_memory[0..self.items.len], self.items);
+            gpa.free(old_memory);
+            self.items.ptr = new_memory.ptr;
+            self.capacity = new_memory.len;
+        }
     }
 };
 
