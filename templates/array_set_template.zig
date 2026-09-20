@@ -94,6 +94,9 @@ test "Insert" {
 
     try testing.expect(xs.items.len == test_insert.len);
 
+    // No duplicate values inserted
+    try testing.expect(xs.insert(allocator, test_insert[0]) == test_insert.len);
+
     for (test_insert_sorted, xs.items) |expected, value| {
         try testing.expect(expected == value);
     }
