@@ -129,7 +129,9 @@ test "Search" {
         _ = xs.insert(allocator, value);
     }
 
-    try testing.expect(xs.search(11) == 2);
+    for (test_insert_sorted, 0..) |search, expected| {
+        try testing.expect(xs.search(search) == expected);
+    }
 
     try testing.expect(xs.search(not_in_xs) == null);
 }
