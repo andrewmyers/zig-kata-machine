@@ -16,10 +16,10 @@ const ArraySet = struct {
         return 0;
     }
 
-    pub fn delete(self: *ArraySet, i: usize) ?usize {
+    pub fn delete(self: *ArraySet, value: u32) ?usize {
         //... Your solution here
         _ = self;
-        _ = i;
+        _ = value;
 
         return 0;
     }
