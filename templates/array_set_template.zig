@@ -79,6 +79,7 @@ test "Init" {
 }
 
 const test_insert = [_]u32{ 11, 12, 0, 90, 7, 32 };
+const test_insert_sorted = [_]u32{ 0, 7, 11, 12, 32, 90 };
 const not_in_xs = 100;
 
 test "Insert" {
@@ -93,7 +94,9 @@ test "Insert" {
 
     try testing.expect(xs.items.len == test_insert.len);
 
-    try testing.expect(isSorted(xs.items));
+    for (test_insert_sorted, xs.items) |expected, value| {
+        try testing.expect(expected == value);
+    }
 }
 
 test "Delete" {
