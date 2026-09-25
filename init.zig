@@ -6,6 +6,10 @@ const USAGE =
     \\
     \\ Options:
     \\    -f|--force: Overwrite exercises that already exist
+    \\    -o|--output: Include the output directory.
+    \\                 The output will be relative to the excercies directory.
+    \\                 `./init-o day-1` generates files in ./exercises/day-1/
+    \\                 ./exercises is the default directory
     \\
     \\
 ;
@@ -21,6 +25,8 @@ const MetaEntry = struct {
 
 const Meta = struct { kata: []MetaEntry };
 
+const ScriptError = error{MissingArgument};
+
 const meta_filename = "./meta.zon";
 const output_dir = "./exercises/";
 const template_dir = "./templates/";
@@ -31,19 +37,19 @@ pub fn main(init: std.process.Init) !void {
 
     var argsIterator = init.minimal.args.iterate();
     var force: bool = false;
+    var output: ?[]const u8 = null;
 
-    var i: usize = 0;
-    while (argsIterator.next()) |arg| : (i += 1) {
-        if (i == 0) {
-            // Program name
-            continue;
-        }
-
+    while (argsIterator.next()) |arg| {
         if (std.mem.eql(u8, "-f", arg) or std.mem.eql(u8, "--force", arg)) {
             force = true;
         } else if (std.mem.eql(u8, "-h", arg) or std.mem.eql(u8, "--help", arg)) {
             display_usage();
             return;
+        } else if (std.mem.eql(u8, "-o", arg) or std.mem.eql(u8, "--output", arg)) {
+            output = argsIterator.next() orelse {
+                std.debug.print("Missing argument for -o|--output\n", .{});
+                return ScriptError.MissingArgument;
+            };
         }
     }
 
@@ -53,12 +59,18 @@ pub fn main(init: std.process.Init) !void {
     defer std.zon.parse.free(allocator, meta);
 
     const cwd = std.Io.Dir.cwd();
-    cwd.createDir(io, output_dir, .default_dir) catch |e| switch (e) {
+
+    var resolved_outdir: []const u8 = output_dir;
+    if (output) |out| {
+        resolved_outdir = try std.mem.concat(allocator, u8, &[_][]const u8{ output_dir, out, "/" });
+    }
+
+    cwd.createDir(io, resolved_outdir, .default_dir) catch |e| switch (e) {
         error.PathAlreadyExists => {},
         else => return e,
     };
 
-    const out_dir = try cwd.openDir(io, output_dir, .{});
+    const out_dir = try cwd.openDir(io, resolved_outdir, .{});
     defer out_dir.close(io);
 
     for (meta.kata) |kata| {
